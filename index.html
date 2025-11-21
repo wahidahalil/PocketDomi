@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriMetric Calculator</title>
+
+    <!-- PWA Manifest and Theme Color -->
+    <meta name="theme-color" content="#4f46e5" />
+    <link rel="manifest" href="data:application/json,{
+        &quot;name&quot;: &quot;NutriMetric Calculator&quot;,
+        &quot;short_name&quot;: &quot;NutriMetric&quot;,
+        &quot;description&quot;: &quot;Estimate body metrics and plan nutrition goals.&quot;,
+        &quot;start_url&quot;: &quot;.&quot;,
+        &quot;display&quot;: &quot;standalone&quot;,
+        &quot;background_color&quot;: &quot;#ffffff&quot;,
+        &quot;theme_color&quot;: &quot;#4f46e5&quot;,
+        &quot;icons&quot;: [
+            { &quot;src&quot;: &quot;https://placehold.co/192x192/4f46e5/ffffff?text=NM&quot;, &quot;sizes&quot;: &quot;192x192&quot;, &quot;type&quot;: &quot;image/png&quot; },
+            { &quot;src&quot;: &quot;https://placehold.co/512x512/4f46e5/ffffff?text=NM&quot;, &quot;sizes&quot;: &quot;512x512&quot;, &quot;type&quot;: &quot;image/png&quot; }
+        ]
+    }">
+
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind to use Inter font -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        };
+    </script>
+</head>
+<body class="h-full bg-gray-100 flex items-center justify-center font-sans p-4">
+
+    <div class="w-full max-w-md bg-white rounded-lg shadow-xl p-6 md:p-8">
+        
+        <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">NutriMetric Calculator</h1>
+
+        <!-- Main Calculator Selection Tabs -->
+        <div class="flex rounded-md shadow-sm mb-6" role="tablist">
+            <button
+                id="main-tab-estimate"
+                type="button"
+                role="tab"
+                aria-selected="true"
+                class="flex-1 px-4 py-3 text-sm font-medium text-white bg-blue-600 rounded-l-md focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+            >
+                1. Estimate
+            </button>
+            <button
+                id="main-tab-preferred"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                class="flex-1 px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+            >
+                2. Preferred Wt
+            </button>
+            <button
+                id="main-tab-calorie"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                class="flex-1 px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 rounded-r-md hover:bg-gray-200 focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+            >
+                3. Nutrients
+            </button>
+        </div>
+
+        <!-- Input Fields -->
+        <form id="calculator-form" class="space-y-4">
+
+            <!-- Tab 1: Estimate Content -->
+            <div id="estimate-content" class="space-y-4">
+                <!-- Gender Selection Tabs -->
+                <div class="flex rounded-md shadow-sm" role="tablist">
+                    <button
+                        id="gender-tab-men"
+                        type="button"
+                        role="tab"
+                        aria-selected="true"
+                        class="flex-1 px-4 py-3 text-sm font-medium text-white bg-indigo-600 rounded-l-md focus:z-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200"
+                    >
+                        Men
+                    </button>
+                    <button
+                        id="gender-tab-women"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        class="flex-1 px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 rounded-r-md hover:bg-gray-200 focus:z-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200"
+                    >
+                        Women
+                    </button>
+                </div>
+
+                <div>
+                    <label for="knee-height" class="block text-sm font-medium text-gray-700 mb-1">
+                        Knee Height (cm)
+                    </label>
+                    <input 
+                        type="number" 
+                        id="knee-height" 
+                        name="knee-height"
+                        step="0.1"
+                        placeholder="e.g., 52"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        required
+                    >
+                </div>
+
+                <div>
+                    <label for="muac" class="block text-sm font-medium text-gray-700 mb-1">
+                        Mid Upper Arm Circumference (cm)
+                    </label>
+                    <input 
+                        type="number" 
+                        id="muac" 
+                        name="muac"
+                        step="0.1"
+                        placeholder="e.g., 29.5"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        required
+                    >
+                </div>
+            </div>
+
+            <!-- Tab 2: Preferred Weight Content -->
+            <div id="preferred-content" class="hidden space-y-4">
+                <div>
+                    <label for="preferred-bmi" class="block text-sm font-medium text-gray-700 mb-1">
+                        Preferred BMI
+                    </label>
+                    <input 
+                        type="number" 
+                        id="preferred-bmi" 
+                        name="preferred-bmi"
+                        step="0.1"
+                        placeholder="e.g., 22.5"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        required
+                    >
+                </div>
+                <p class="text-xs text-gray-500 text-center">
+                    This calculation uses the Estimated Height <strong id="pref-ht-display">(from Tab 1)</strong>.
+                </p>
+            </div>
+
+            <!-- Tab 3: Nutrients Content -->
+            <div id="nutrients-content" class="hidden space-y-4">
+                <!-- Calorie Base Selection -->
+                <div id="calorie-base-tabs" class="flex rounded-md shadow-sm" role="tablist">
+                    <button
+                        id="calorie-tab-estimated"
+                        type="button"
+                        role="tab"
+                        aria-selected="true"
+                        class="flex-1 px-4 py-2 text-xs font-medium text-white bg-teal-600 rounded-l-md focus:z-10 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-200"
+                    >
+                        Use Estimated Weight
+                    </button>
+                    <button
+                        id="calorie-tab-preferred"
+                        type="button"
+                        role="tab"
+                        aria-selected="false"
+                        class="flex-1 px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 rounded-r-md hover:bg-gray-200 focus:z-10 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-200"
+                    >
+                        Use Preferred Weight
+                    </button>
+                </div>
+
+                <div>
+                    <label for="kcal-per-kg" class="block text-sm font-medium text-gray-700 mb-1">
+                        Desired Kcal per Kg
+                    </label>
+                    <input 
+                        type="number" 
+                        id="kcal-per-kg" 
+                        name="kcal-per-kg"
+                        step="1"
+                        placeholder="e.g., 30"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        required
+                    >
+                </div>
+
+                <div>
+                    <label for="protein-per-kg" class="block text-sm font-medium text-gray-700 mb-1">
+                        Desired Protein per Kg (g) <span class="text-gray-500">(Optional)</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="protein-per-kg" 
+                        name="protein-per-kg"
+                        step="0.1"
+                        placeholder="e.g., 1.2"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                </div>
+                 <p class="text-xs text-gray-500 text-center">
+                    This calculation uses the <strong id="nutrient-wt-display">Estimated Weight</strong> from Tab 1.
+                </p>
+            </div>
+
+            <!-- Calculate Button -->
+            <button 
+                type="submit"
+                id="calculate-button"
+                class="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+            >
+                Calculate All Metrics
+            </button>
+        </form>
+
+        <!-- Result Display -->
+        <div id="result-container" class="hidden mt-6 p-4 rounded-md text-left space-y-2">
+            <!-- Results will be injected here by JS -->
+        </div>
+
+        <!-- Formula Info -->
+        <div class="mt-6 pt-4 border-t border-gray-200">
+            <h3 class="text-xs font-semibold text-gray-600 mb-2">Formulas Used:</h3>
+            
+            <!-- Estimate Metrics Formulas -->
+            <div id="estimation-formulas">
+                <!-- Weight Formulas -->
+                <div id="weight-formula-info">
+                    <ul class="space-y-1">
+                        <li id="formula-weight-men" class="text-xs text-gray-500">
+                            <strong>Men (Weight):</strong> (1.1 x KH) + (3.07 x MUAC) - 75.81
+                            <span class="italic ml-1">(Ross Lab / Lin et al., 2009)</span>
+                        </li>
+                        <li id="formula-weight-women" class="text-xs text-gray-400">
+                            <strong>Women (Weight):</strong> (1.01 x KH) + (2.81 x MUAC) - 66.04
+                            <span class="italic ml-1">(Ross Lab / Lin et al., 2009)</span>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Height Formulas -->
+                <div id="height-formula-info" class="mt-2">
+                     <ul class="space-y-1">
+                        <li id="formula-height-men" class="text-xs text-gray-500">
+                            <strong>Men (Height):</strong> 69.38 + (1.924 x KH)
+                            <span class="italic ml-1">(Suzana & Ng, 2003)</span>
+                        </li>
+                        <li id="formula-height-women" class="text-xs text-gray-400">
+                            <strong>Women (Height):</strong> 50.25 + (2.225 x KH)
+                            <span class="italic ml-1">(Suzana & Ng, 2003)</span>
+                        </li>
+                    </ul>
+                </div>
+                <!-- BMI Formula -->
+                <div id="bmi-formula-info" class="mt-2">
+                     <ul class="space-y-1">
+                        <li class="text-xs text-gray-500">
+                            <strong>BMI:</strong> Estimated Weight (kg) / [Estimated Height (m)]²
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Preferred Weight Formulas (Hidden by default) -->
+            <div id="preferred-weight-formulas" class="hidden">
+                 <div id="height-formula-info-pref" class="mt-2">
+                     <ul class="space-y-1">
+                        <li id="formula-height-men-pref" class="text-xs text-gray-500">
+                            <strong>Men (Height):</strong> 69.38 + (1.924 x KH)
+                            <span class="italic ml-1">(Suzana & Ng, 2003)</span>
+                        </li>
+                        <li id="formula-height-women-pref" class="text-xs text-gray-400">
+                            <strong>Women (Height):</strong> 50.25 + (2.225 x KH)
+                            <span class="italic ml-1">(Suzana & Ng, 2003)</span>
+                        </li>
+                    </ul>
+                </div>
+                <div id="pref-weight-formula-info" class="mt-2">
+                     <ul class="space-y-1">
+                        <li class="text-xs text-gray-500">
+                            <strong>Preferred Weight:</strong> Preferred BMI x [Estimated Height (m)]²
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Calorie Formulas (Hidden by default) -->
+            <div id="calorie-formulas" class="hidden">
+                <!-- Weight (Est) formulas for calorie calc -->
+                <div id="weight-formula-info-cal">
+                    <ul class="space-y-1">
+                        <li id="formula-weight-men-cal" class="text-xs text-gray-500">
+                            <strong>Men (Weight):</strong> (1.1 x KH) + (3.07 x MUAC) - 75.81
+                            <span class="italic ml-1">(Ross Lab / Lin et al., 2009)</span>
+                        </li>
+                        <li id="formula-weight-women-cal" class="text-xs text-gray-400">
+                            <strong>Women (Weight):</strong> (1.01 x KH) + (2.81 x MUAC) - 66.04
+                            <span class="italic ml-1">(Ross Lab / Lin et al., 2009)</span>
+                        </li>
+                    </ul>
+                </div>
+
+                 <!-- Height formulas for calorie calc -->
+                 <div id="height-formula-info-cal" class="mt-2">
+                     <ul class="space-y-1">
+                        <li id="formula-height-men-cal" class="text-xs text-gray-500">
+                            <strong>Men (Height):</strong> 69.38 + (1.924 x KH)
+                            <span class="italic ml-1">(Suzana & Ng, 2003)</span>
+                        </li>
+                        <li id="formula-height-women-cal" class="text-xs text-gray-400">
+                            <strong>Women (Height):</strong> 50.25 + (2.225 x KH)
+                            <span class="italic ml-1">(Suzana & Ng, 2003)</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Preferred Weight formulas for calorie calc (hidden by default) -->
+                <div id="pref-weight-formula-info-cal" class="hidden mt-2">
+                     <ul class="space-y-1">
+                        <li class="text-xs text-gray-500">
+                            <strong>Preferred Weight:</strong> Preferred BMI x [Estimated Height (m)]²
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Total Calorie Formula -->
+                <div id="total-cal-formula-info" class="mt-2">
+                     <ul class="space-y-1">
+                        <li id="formula-total-cal-est" class="text-xs text-gray-500">
+                            <strong>Total Calories:</strong> Est. Weight x (Kcal/kg)
+                        </li>
+                         <li id="formula-total-cal-pref" class="text-xs text-gray-500 hidden">
+                            <strong>Total Calories:</strong> Pref. Weight x (Kcal/kg)
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Total Protein Formula -->
+                <div id="total-protein-formula-info" class="mt-2">
+                     <ul class="space-y-1">
+                        <li id="formula-total-protein-est" class="text-xs text-gray-500">
+                            <strong>Total Protein:</strong> Est. Weight x (Protein g/kg)
+                        </li>
+                         <li id="formula-total-protein-pref" class="text-xs text-gray-500 hidden">
+                            <strong>Total Protein:</strong> Pref. Weight x (Protein g/kg)
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Global State Variables ---
+            let selectedGender = 'men'; // 'men' or 'women'
+            let selectedCalculator = 'estimate'; // 'estimate', 'preferred', or 'calorie'
+            let selectedCalorieBase = 'estimated'; // 'estimated' or 'preferred'
+            
+            // --- Cached Calculation Results ---
+            let globalEstHeight = 0;
+            let globalEstWeight = 0;
+            let globalPrefWeight = 0;
+            let hasCalculatedEstimate = false;
+            let hasCalculatedPreferred = false;
+
+            // --- Main Tab Elements ---
+            const mainTabEstimate = document.getElementById('main-tab-estimate');
+            const mainTabPreferred = document.getElementById('main-tab-preferred');
+            const mainTabCalorie = document.getElementById('main-tab-calorie');
+
+            // --- Tab Content Wrappers ---
+            const estimateContent = document.getElementById('estimate-content');
+            const preferredContent = document.getElementById('preferred-content');
+            const nutrientsContent = document.getElementById('nutrients-content');
+
+            // --- Gender Tab Elements ---
+            const genderTabMen = document.getElementById('gender-tab-men');
+            const genderTabWomen = document.getElementById('gender-tab-women');
+
+            // --- Form & Input Elements ---
+            const form = document.getElementById('calculator-form');
+            const muacInput = document.getElementById('muac');
+            const kneeHeightInput = document.getElementById('knee-height');
+            const preferredBmiInput = document.getElementById('preferred-bmi');
+            const kcalPerKgInput = document.getElementById('kcal-per-kg');
+            const proteinPerKgInput = document.getElementById('protein-per-kg');
+            const calculateButton = document.getElementById('calculate-button');
+            
+            // --- UI Display Elements ---
+            const prefHtDisplay = document.getElementById('pref-ht-display');
+            const nutrientWtDisplay = document.getElementById('nutrient-wt-display');
+            
+            // --- Calorie Base Tab Elements ---
+            const calorieBaseTabs = document.getElementById('calorie-base-tabs');
+            const calorieTabEstimated = document.getElementById('calorie-tab-estimated');
+            const calorieTabPreferred = document.getElementById('calorie-tab-preferred');
+
+            // --- Result & Formula Elements ---
+            const resultContainer = document.getElementById('result-container');
+            
+            const estimationFormulas = document.getElementById('estimation-formulas');
+            const preferredWeightFormulas = document.getElementById('preferred-weight-formulas');
+            const calorieFormulas = document.getElementById('calorie-formulas');
+
+            const formulaWeightMen = document.getElementById('formula-weight-men');
+            const formulaWeightWomen = document.getElementById('formula-weight-women');
+            const formulaHeightMen = document.getElementById('formula-height-men');
+            const formulaHeightWomen = document.getElementById('formula-height-women');
+            const formulaHeightMenPref = document.getElementById('formula-height-men-pref');
+            const formulaHeightWomenPref = document.getElementById('formula-height-women-pref');
+
+            // Calorie Formula Elements
+            const formulaWeightMenCal = document.getElementById('formula-weight-men-cal');
+            const formulaWeightWomenCal = document.getElementById('formula-weight-women-cal');
+            const formulaHeightMenCal = document.getElementById('formula-height-men-cal');
+            const formulaHeightWomenCal = document.getElementById('formula-height-women-cal');
+            const weightFormulaInfoCal = document.getElementById('weight-formula-info-cal');
+            const heightFormulaInfoCal = document.getElementById('height-formula-info-cal');
+            const prefWeightFormulaInfoCal = document.getElementById('pref-weight-formula-info-cal');
+            const formulaTotalCalEst = document.getElementById('formula-total-cal-est');
+            const formulaTotalCalPref = document.getElementById('formula-total-cal-pref');
+            const formulaTotalProteinEst = document.getElementById('formula-total-protein-est');
+            const formulaTotalProteinPref = document.getElementById('formula-total-protein-pref');
+
+
+            // --- Event Listeners ---
+            mainTabEstimate.addEventListener('click', () => handleMainTabClick('estimate'));
+            mainTabPreferred.addEventListener('click', () => handleMainTabClick('preferred'));
+            mainTabCalorie.addEventListener('click', () => handleMainTabClick('calorie'));
+
+            calorieTabEstimated.addEventListener('click', () => handleCalorieBaseTabClick('estimated'));
+            calorieTabPreferred.addEventListener('click', () => handleCalorieBaseTabClick('preferred'));
+
+            genderTabMen.addEventListener('click', () => handleGenderTabClick('men'));
+            genderTabWomen.addEventListener('click', () => handleGenderTabClick('women'));
+
+            form.addEventListener('submit', handleCalculation);
+
+            // --- Handler Functions ---
+
+            function handleMainTabClick(calcType) {
+                selectedCalculator = calcType;
+                clearResult();
+
+                // Update tab styles
+                mainTabEstimate.classList.toggle('bg-blue-600', calcType === 'estimate');
+                mainTabEstimate.classList.toggle('text-white', calcType === 'estimate');
+                mainTabEstimate.classList.toggle('bg-gray-100', calcType !== 'estimate');
+                mainTabEstimate.classList.toggle('text-gray-700', calcType !== 'estimate');
+                mainTabEstimate.setAttribute('aria-selected', calcType === 'estimate');
+
+                mainTabPreferred.classList.toggle('bg-blue-600', calcType === 'preferred');
+                mainTabPreferred.classList.toggle('text-white', calcType === 'preferred');
+                mainTabPreferred.classList.toggle('bg-gray-100', calcType !== 'preferred');
+                mainTabPreferred.classList.toggle('text-gray-700', calcType !== 'preferred');
+                mainTabPreferred.setAttribute('aria-selected', calcType === 'preferred');
+                
+                mainTabCalorie.classList.toggle('bg-blue-600', calcType === 'calorie');
+                mainTabCalorie.classList.toggle('text-white', calcType === 'calorie');
+                mainTabCalorie.classList.toggle('bg-gray-100', calcType !== 'calorie');
+                mainTabCalorie.classList.toggle('text-gray-700', calcType !== 'calorie');
+                mainTabCalorie.setAttribute('aria-selected', calcType === 'calorie');
+
+
+                if (calcType === 'estimate') {
+                    // Show/Hide content
+                    estimateContent.style.display = 'block';
+                    preferredContent.style.display = 'none';
+                    nutrientsContent.style.display = 'none';
+                    // Show/Hide formulas
+                    estimationFormulas.style.display = 'block';
+                    preferredWeightFormulas.style.display = 'none';
+                    calorieFormulas.style.display = 'none';
+                    // Update button
+                    calculateButton.textContent = 'Calculate All Metrics';
+                    // Update required fields
+                    muacInput.required = true;
+                    kneeHeightInput.required = true;
+                    preferredBmiInput.required = false;
+                    kcalPerKgInput.required = false;
+                    proteinPerKgInput.required = false;
+                } else if (calcType === 'preferred') { 
+                    // Show/Hide content
+                    estimateContent.style.display = 'none';
+                    preferredContent.style.display = 'block';
+                    nutrientsContent.style.display = 'none';
+                    // Show/Hide formulas
+                    estimationFormulas.style.display = 'none';
+                    preferredWeightFormulas.style.display = 'block';
+                    calorieFormulas.style.display = 'none';
+                    // Update button
+                    calculateButton.textContent = 'Calculate Preferred Weight';
+                    // Update required fields
+                    muacInput.required = false;
+                    kneeHeightInput.required = false;
+                    preferredBmiInput.required = true;
+                    kcalPerKgInput.required = false;
+                    proteinPerKgInput.required = false;
+                } else { // calcType === 'calorie'
+                    // Show/Hide content
+                    estimateContent.style.display = 'none';
+                    preferredContent.style.display = 'none';
+                    nutrientsContent.style.display = 'block';
+                    // Show/Hide formulas
+                    estimationFormulas.style.display = 'none';
+                    preferredWeightFormulas.style.display = 'none';
+                    calorieFormulas.style.display = 'block';
+                    // Update button
+                    calculateButton.textContent = 'Calculate Nutrients';
+                    // Update required fields
+                    muacInput.required = false;
+                    kneeHeightInput.required = false;
+                    preferredBmiInput.required = false;
+                    kcalPerKgInput.required = true;
+                    proteinPerKgInput.required = false;
+                    // Trigger sub-tab click to set correct formula display
+                    handleCalorieBaseTabClick(selectedCalorieBase);
+                }
+            }
+            
+            function handleCalorieBaseTabClick(baseType) {
+                selectedCalorieBase = baseType;
+                clearResult();
+
+                // Update sub-tab styles
+                calorieTabEstimated.classList.toggle('bg-teal-600', baseType === 'estimated');
+                calorieTabEstimated.classList.toggle('text-white', baseType === 'estimated');
+                calorieTabEstimated.classList.toggle('bg-gray-100', baseType !== 'estimated');
+                calorieTabEstimated.classList.toggle('text-gray-700', baseType !== 'estimated');
+                calorieTabEstimated.setAttribute('aria-selected', baseType === 'estimated');
+
+                calorieTabPreferred.classList.toggle('bg-teal-600', baseType === 'preferred');
+                calorieTabPreferred.classList.toggle('text-white', baseType === 'preferred');
+                calorieTabPreferred.classList.toggle('bg-gray-100', baseType !== 'preferred');
+                calorieTabPreferred.classList.toggle('text-gray-700', baseType !== 'preferred');
+                calorieTabPreferred.setAttribute('aria-selected', baseType === 'preferred');
+
+                if (baseType === 'estimated') {
+                    // Update formula display
+                    weightFormulaInfoCal.style.display = 'block';
+                    heightFormulaInfoCal.style.display = 'block';
+                    prefWeightFormulaInfoCal.style.display = 'none';
+                    formulaTotalCalEst.style.display = 'block';
+                    formulaTotalCalPref.style.display = 'none';
+                    formulaTotalProteinEst.style.display = 'block';
+                    formulaTotalProteinPref.style.display = 'none';
+                    nutrientWtDisplay.textContent = 'Estimated Weight';
+                } else { // baseType === 'preferred'
+                    // Update formula display
+                    weightFormulaInfoCal.style.display = 'none';
+                    heightFormulaInfoCal.style.display = 'block';
+                    prefWeightFormulaInfoCal.style.display = 'block';
+                    formulaTotalCalEst.style.display = 'none';
+                    formulaTotalCalPref.style.display = 'block';
+                    formulaTotalProteinEst.style.display = 'none';
+                    formulaTotalProteinPref.style.display = 'block';
+                    nutrientWtDisplay.textContent = 'Preferred Weight';
+                }
+            }
+
+
+            function handleGenderTabClick(gender) {
+                // If gender changes, all calculations are invalid
+                resetCalculations();
+                selectedGender = gender;
+                
+                if (gender === 'men') {
+                    // Update gender tabs
+                    genderTabMen.classList.replace('bg-gray-100', 'bg-indigo-600');
+                    genderTabMen.classList.replace('text-gray-700', 'text-white');
+                    genderTabMen.setAttribute('aria-selected', 'true');
+                    
+                    genderTabWomen.classList.replace('bg-indigo-600', 'bg-gray-100');
+                    genderTabWomen.classList.replace('text-white', 'text-gray-700');
+                    genderTabWomen.setAttribute('aria-selected', 'false');
+                } else { // gender === 'women'
+                    // Update gender tabs
+                    genderTabWomen.classList.replace('bg-gray-100', 'bg-indigo-600');
+                    genderTabWomen.classList.replace('text-gray-700', 'text-white');
+                    genderTabWomen.setAttribute('aria-selected', 'true');
+
+                    genderTabMen.classList.replace('bg-indigo-600', 'bg-gray-100');
+                    genderTabMen.classList.replace('text-white', 'text-gray-700');
+                    genderTabMen.setAttribute('aria-selected', 'false');
+                }
+                
+                updateFormulaHighlights();
+            }
+
+            // Updates formula text color based on selections
+            function updateFormulaHighlights() {
+                const isMan = (selectedGender === 'men');
+                formulaWeightMen.className = isMan ? 'text-xs text-gray-500' : 'text-xs text-gray-400';
+                formulaWeightWomen.className = !isMan ? 'text-xs text-gray-500' : 'text-xs text-gray-400';
+                formulaHeightMen.className = isMan ? 'text-xs text-gray-500' : 'text-xs text-gray-400';
+                formulaHeightWomen.className = !isMan ? 'text-xs text-gray-500' : 'text-xs text-gray-400';
+                formulaHeightMenPref.className = isMan ? 'text-xs text-gray-500' : 'text-xs text-gray-400';
+                formulaHeightWomenPref.className = !isMan ? 'text-xs text-gray-500' : 'text-xs text-gray-400';
+                
+                // Update calorie formula highlights
+                formulaWeightMenCal.className = isMan ? 'text-xs text-gray-500' : 'text-xs text-gray-400';
+                formulaWeightWomenCal.className = !isMan ? 'text-xs text-gray-500' : 'text-xs text-gray-400';
+                formulaHeightMenCal.className = isMan ? 'text-xs text-gray-500' : 'text-xs text-gray-400';
+                formulaHeightWomenCal.className = !isMan ? 'text-xs text-gray-500' : 'text-xs text-gray-400';
+            }
+
+            // Main calculation logic
+            function handleCalculation(e) {
+                e.preventDefault(); // Prevent form submission
+                
+                if (selectedCalculator === 'estimate') {
+                    const kneeHeight = parseFloat(kneeHeightInput.value);
+                    const muac = parseFloat(muacInput.value);
+
+                    if (isNaN(kneeHeight) || kneeHeight <= 0) {
+                        showResult('<p>Please enter a valid, positive Knee Height.</p>', 'error');
+                        return;
+                    }
+                    if (isNaN(muac) || muac <= 0) {
+                        showResult('<p>Please enter a valid, positive Mid Upper Arm Circumference.</p>', 'error');
+                        return;
+                    }
+
+                    // Calculations
+                    let estHeight = 0;
+                    let estWeight = 0;
+
+                    if (selectedGender === 'men') {
+                        estHeight = 69.38 + (1.924 * kneeHeight);
+                        estWeight = (1.1 * kneeHeight) + (3.07 * muac) - 75.81;
+                    } else {
+                        estHeight = 50.25 + (2.225 * kneeHeight);
+                        estWeight = (1.01 * kneeHeight) + (2.81 * muac) - 66.04;
+                    }
+
+                    if (estHeight <= 0 || estWeight <= 0) {
+                        resetCalculations();
+                        showResult('<p>Calculation resulted in a non-positive weight or height. Please check inputs.</p>', 'error');
+                        return;
+                    }
+
+                    // Calculate BMI from estimated values
+                    const estHeightM = estHeight / 100;
+                    const estBMI = estWeight / (estHeightM * estHeightM);
+                    
+                    let bmiCategory = "";
+                    let bmiType = "success";
+
+                    if (estBMI < 18.5) {
+                        bmiCategory = "Underweight";
+                        bmiType = 'warning';
+                    } else if (estBMI >= 18.5 && estBMI <= 24.9) {
+                        bmiCategory = "Normal weight";
+                        bmiType = 'success';
+                    } else if (estBMI >= 25 && estBMI <= 29.9) {
+                        bmiCategory = "Overweight";
+                        bmiType = 'warning';
+                    } else { // estBMI >= 30
+                        bmiCategory = "Obese";
+                        bmiType = 'error';
+                    }
+
+                    // Save to global state
+                    globalEstHeight = estHeight;
+                    globalEstWeight = estWeight;
+                    hasCalculatedEstimate = true;
+                    hasCalculatedPreferred = false; // Reset preferred if estimate changes
+                    globalPrefWeight = 0;
+                    
+                    // Update UI text for other tabs
+                    prefHtDisplay.textContent = `(${globalEstHeight.toFixed(2)} cm)`;
+
+                    const resultHTML = `
+                        <p class="font-medium">Estimated Body Weight: <strong class="float-right">${estWeight.toFixed(2)} kg</strong></p>
+                        <p class="font-medium">Estimated Height: <strong class="float-right">${estHeight.toFixed(2)} cm</strong></p>
+                        <hr class="my-2 border-gray-200">
+                        <p class="font-medium">Estimated BMI: <strong class="float-right">${estBMI.toFixed(1)} (${bmiCategory})</strong></p>
+                    `;
+                    showResult(resultHTML, bmiType);
+
+                } else if (selectedCalculator === 'preferred') {
+                    if (!hasCalculatedEstimate) {
+                        showResult('<p>Please go to Tab 1 and calculate your Estimated Metrics first.</p>', 'error');
+                        return;
+                    }
+
+                    const preferredBMI = parseFloat(preferredBmiInput.value);
+                    if (isNaN(preferredBMI) || preferredBMI <= 0) {
+                        showResult('<p>Please enter a valid, positive Preferred BMI.</p>', 'error');
+                        return;
+                    }
+
+                    // Calculate preferred weight
+                    const estHeightM = globalEstHeight / 100;
+                    const preferredWeight = preferredBMI * (estHeightM * estHeightM);
+
+                    // Save to global state
+                    globalPrefWeight = preferredWeight;
+                    hasCalculatedPreferred = true;
+
+                    const resultHTML = `
+                        <p class="font-medium">Estimated Height: <strong class="float-right">${globalEstHeight.toFixed(2)} cm</strong></p>
+                        <hr class="my-2 border-gray-200">
+                        <p class="font-medium">Preferred Weight (at ${preferredBMI.toFixed(1)} BMI): <strong class="float-right text-blue-700">${preferredWeight.toFixed(2)} kg</strong></p>
+                    `;
+                    showResult(resultHTML, 'success');
+
+                } else { // selectedCalculator === 'calorie'
+                    const kcalPerKg = parseFloat(kcalPerKgInput.value);
+                    if (isNaN(kcalPerKg) || kcalPerKg <= 0) {
+                        showResult('<p>Please enter a valid, positive Kcal/kg value.</p>', 'error');
+                        return;
+                    }
+
+                    // Get optional protein value
+                    const proteinPerKg = parseFloat(proteinPerKgInput.value);
+                    let proteinHTML = '';
+                    let weightToUse = 0;
+                    let weightType = "";
+
+                    if (selectedCalorieBase === 'estimated') {
+                        if (!hasCalculatedEstimate) {
+                            showResult('<p>Please go to Tab 1 and calculate your Estimated Metrics first.</p>', 'error');
+                            return;
+                        }
+                        weightToUse = globalEstWeight;
+                        weightType = "Estimated Weight";
+                    } else { // selectedCalorieBase === 'preferred'
+                        if (!hasCalculatedPreferred) {
+                            showResult('<p>Please go to Tab 2 and calculate your Preferred Weight first.</p>', 'error');
+                            return;
+                        }
+                        weightToUse = globalPrefWeight;
+                        weightType = "Preferred Weight";
+                    }
+
+                    const totalCalories = weightToUse * kcalPerKg;
+                    
+                    // Check if protein was entered
+                    if (!isNaN(proteinPerKg) && proteinPerKg > 0) {
+                        const totalProtein = weightToUse * proteinPerKg;
+                        proteinHTML = `<p class="font-medium">Total Protein Requirement: <strong class="float-right text-purple-700">${totalProtein.toFixed(1)} g</strong></p>`;
+                    }
+
+                    const resultHTML = `
+                        <p class="font-medium">${weightType}: <strong class="float-right">${weightToUse.toFixed(2)} kg</strong></s</p>
+                        <p class="font-medium">Desired Kcal/kg: <strong class="float-right">${kcalPerKg.toFixed(0)} kcal/kg</strong></p>
+                        <hr class="my-2 border-gray-200">
+                        <p class="font-medium">Total Calorie Requirement: <strong class="float-right text-teal-700">${totalCalories.toFixed(0)} kcal</strong></p>
+                        ${proteinHTML}
+                    `;
+                    showResult(resultHTML, 'success');
+                }
+            }
+
+            // --- Utility Functions ---
+
+            // Helper to show result/error messages
+            function showResult(htmlMessage, type) {
+                resultContainer.innerHTML = htmlMessage;
+                resultContainer.classList.remove('hidden');
+
+                // Clear all previous color classes
+                resultContainer.classList.remove('bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800', 'bg-yellow-100', 'text-yellow-800');
+                
+                if (type === 'success') {
+                    resultContainer.classList.add('bg-green-100', 'text-green-800');
+                } else if (type === 'warning') {
+                    resultContainer.classList.add('bg-yellow-100', 'text-yellow-800');
+                } else { // 'error' or default
+                    resultContainer.classList.add('bg-red-100', 'text-red-800');
+                }
+            }
+            
+            // Helper to hide the result box
+            function clearResult() {
+                resultContainer.classList.add('hidden');
+                resultContainer.innerHTML = '';
+            }
+
+            function resetCalculations() {
+                clearResult();
+                globalEstHeight = 0;
+                globalEstWeight = 0;
+                globalPrefWeight = 0;
+                hasCalculatedEstimate = false;
+                hasCalculatedPreferred = false;
+                prefHtDisplay.textContent = '(from Tab 1)';
+            }
+
+            // --- Initial Setup ---
+            // Explicitly set the required attributes for the initial 'estimate' state
+            // to ensure hidden fields don't block submission.
+            muacInput.required = true;
+            kneeHeightInput.required = true;
+            preferredBmiInput.required = false;
+            kcalPerKgInput.required = false;
+            proteinPerKgInput.required = false;
+
+            // Run highlight once on load
+            updateFormulaHighlights();
+
+            // --- PWA Service Worker Registration ---
+            if ('serviceWorker' in navigator) {
+                // Bumped cache version to v3 to force update
+                const swContent = `
+                    const CACHE_NAME = 'nutrimetric-cache-v3';
+                    const ASSETS_TO_CACHE = [
+                        './', 
+                        'https://cdn.tailwindcss.com'
+                    ];
+                    
+                    self.addEventListener('install', (event) => {
+                        self.skipWaiting(); // Force new SW to take over immediately
+                        event.waitUntil(
+                            caches.open(CACHE_NAME).then((cache) => {
+                                return cache.addAll(ASSETS_TO_CACHE);
+                            })
+                        );
+                    });
+
+                    self.addEventListener('activate', (event) => {
+                        event.waitUntil(
+                            caches.keys().then((cacheNames) => {
+                                return Promise.all(
+                                    cacheNames.map((cacheName) => {
+                                        if (cacheName !== CACHE_NAME) {
+                                            return caches.delete(cacheName);
+                                        }
+                                    })
+                                );
+                            })
+                        );
+                    });
+                    
+                    self.addEventListener('fetch', (event) => {
+                        event.respondWith(
+                            caches.match(event.request).then((response) => {
+                                if (response) {
+                                    return response;
+                                }
+                                return fetch(event.request);
+                            })
+                        );
+                    });
+                `;
+                const swBlob = new Blob([swContent], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(swBlob);
+
+                window.addEventListener('load', () => {
+                    try {
+                        navigator.serviceWorker.register(swUrl)
+                            .then(registration => {
+                                // console.log('ServiceWorker registration successful');
+                            })
+                            .catch(error => {
+                                // Downgrade to warning to avoid alarming user in preview
+                                console.warn('ServiceWorker registration failed (PWA features might be disabled in this environment):', error);
+                            });
+                    } catch (e) {
+                         console.warn('ServiceWorker registration failed:', e);
+                    }
+                });
+            }
+            // --- End PWA ---
+
+        });
+    </script>
+
+</body>
+</html>
